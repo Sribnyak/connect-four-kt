@@ -5,10 +5,12 @@ import androidx.appcompat.app.AppCompatActivity
 
 class MainActivity : AppCompatActivity() {
 
+    lateinit var gameView: GameView
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         //setContentView(R.layout.activity_main)
-        val draw2D = Draw2D(this)
-        setContentView(draw2D)
+        gameView = GameView(this)
+        setContentView(gameView)
     }
 }
