@@ -15,6 +15,9 @@ class GameView(ctx: Context) : View(ctx) {
         const val RADIUS = 3
         const val WIDTH = Game.COLS * BLOCK_WIDTH + 2 // empty - cols - empty
         const val HEIGHT = (Game.ROWS + 1) * BLOCK_HEIGHT + 3 // empty row - fill - rows - fill - empty
+        val BLUE = Color.rgb(34, 34, 136)
+        val RED = Color.rgb(221, 0, 0)
+        val YELLOW = Color.rgb(255, 221, 0)
     }
     private val paint: Paint = Paint().apply {
         style = Paint.Style.FILL
@@ -39,13 +42,18 @@ class GameView(ctx: Context) : View(ctx) {
         paint.color = Color.WHITE
         canvas.drawPaint(paint)
 
-        paint.color = Color.BLUE
+        paint.color = BLUE
         canvas.drawRect(getField(), paint)
 
         paint.color = Color.WHITE
         for (i in 0 until Game.ROWS)
             for (j in 0 until Game.COLS)
                 canvas.drawCircle(getBlockX(j), getBlockY(i), RADIUS * unit, paint)
+
+        paint.color = RED
+        canvas.drawCircle(getBlockX(3), getBlockY(5), RADIUS * unit, paint)
+        paint.color = YELLOW
+        canvas.drawCircle(getBlockX(4), getBlockY(5), RADIUS * unit, paint)
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
