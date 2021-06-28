@@ -18,6 +18,12 @@ class GameView(ctx: Context) : View(ctx) {
         val BLUE = Color.rgb(34, 34, 136)
         val RED = Color.rgb(221, 0, 0)
         val YELLOW = Color.rgb(255, 221, 0)
+        val WHITE = Color.rgb(255, 255, 255)
+        private fun getPlayerColor(id: Int) = when (id) {
+            1 -> RED
+            -1 -> YELLOW
+            else -> WHITE
+        }
     }
     private val paint: Paint = Paint().apply {
         style = Paint.Style.FILL
@@ -39,21 +45,26 @@ class GameView(ctx: Context) : View(ctx) {
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
-        paint.color = Color.WHITE
-        canvas.drawPaint(paint)
+        Game.field[5][3] = 1
+        Game.field[5][4] = -1
 
-        paint.color = BLUE
-        canvas.drawRect(getField(), paint)
+        if (Game.state == Game.State.TURN) {
+            paint.color = WHITE
+            canvas.drawPaint(paint)
 
-        paint.color = Color.WHITE
-        for (i in 0 until Game.ROWS)
-            for (j in 0 until Game.COLS)
-                canvas.drawCircle(getBlockX(j), getBlockY(i), RADIUS * unit, paint)
+            paint.color = BLUE
+            canvas.drawRect(getField(), paint)
 
-        paint.color = RED
-        canvas.drawCircle(getBlockX(3), getBlockY(5), RADIUS * unit, paint)
-        paint.color = YELLOW
-        canvas.drawCircle(getBlockX(4), getBlockY(5), RADIUS * unit, paint)
+            paint.color = getPlayerColor(Game.currentTurn)
+            canvas.drawCircle(getBlockX(Game.selectedColumn), getY(BLOCK_HEIGHT / 2), RADIUS * unit, paint)
+
+            for (i in 0 until Game.ROWS) {
+                for (j in 0 until Game.COLS) {
+                    paint.color = getPlayerColor(Game.field[i][j])
+                    canvas.drawCircle(getBlockX(j), getBlockY(i), RADIUS * unit, paint)
+                }
+            }
+        }
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
