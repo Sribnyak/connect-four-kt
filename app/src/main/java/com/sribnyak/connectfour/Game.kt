@@ -12,4 +12,21 @@ object Game {
     var currentTurn = 1
     var selectedColumn = MID_COL
     var field = Array(ROWS) { Array(COLS) { 0 } }
+
+    fun dropDisc() {
+        val depth = getLastEmptyBlock(selectedColumn)
+        if (depth >= 0) {
+            field[depth][selectedColumn] = currentTurn
+            // TODO val line = getLineWith(selectedColumn, depth)
+            currentTurn = -currentTurn
+            selectedColumn = MID_COL
+        }
+    }
+
+    private fun getLastEmptyBlock(col: Int): Int {
+        var cnt = 0
+        while (cnt < ROWS && field[cnt][col] == 0)
+            cnt++
+        return cnt-1
+    }
 }

@@ -1,10 +1,12 @@
 package com.sribnyak.connectfour
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.RectF
+import android.view.MotionEvent
 import android.view.View
 import kotlin.math.min
 
@@ -45,9 +47,6 @@ class GameView(ctx: Context) : View(ctx) {
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
-        Game.field[5][3] = 1
-        Game.field[5][4] = -1
-
         if (Game.state == Game.State.TURN) {
             paint.color = WHITE
             canvas.drawPaint(paint)
@@ -65,6 +64,21 @@ class GameView(ctx: Context) : View(ctx) {
                 }
             }
         }
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
+    override fun onTouchEvent(event: MotionEvent?): Boolean {
+        if (event != null && event.action == MotionEvent.ACTION_DOWN) {
+            val x = (event.x - x0) / unit
+            val y = (event.y - y0) / unit
+            if (Game.state == Game.State.TURN) {
+                if (x > 1 && x < WIDTH - 1 && y > Game.ROWS * BLOCK_HEIGHT && y < HEIGHT - 1) {
+                    Game.dropDisc()
+                    invalidate()
+                }
+            }
+        }
+        return super.onTouchEvent(event)
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
