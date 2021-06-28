@@ -21,7 +21,7 @@ class GameView(ctx: Context) : View(ctx) {
         val RED = Color.rgb(221, 0, 0)
         val YELLOW = Color.rgb(255, 221, 0)
         val WHITE = Color.rgb(255, 255, 255)
-        private fun getPlayerColor(id: Int) = when (id) {
+        fun getPlayerColor(id: Int) = when (id) {
             1 -> RED
             -1 -> YELLOW
             else -> WHITE
@@ -75,6 +75,12 @@ class GameView(ctx: Context) : View(ctx) {
                 if (x > 1 && x < WIDTH - 1 && y > Game.ROWS * BLOCK_HEIGHT && y < HEIGHT - 1) {
                     Game.dropDisc()
                     invalidate()
+                } else if (y > 0 && y < Game.ROWS * BLOCK_HEIGHT - 2)
+                        for (i in 0 until Game.COLS)
+                        if (x > i * BLOCK_WIDTH + 2 && x < (i + 1) * BLOCK_WIDTH) {
+                    Game.selectedColumn = i
+                    invalidate()
+                    break
                 }
             }
         }
