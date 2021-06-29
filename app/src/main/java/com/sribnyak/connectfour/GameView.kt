@@ -47,21 +47,50 @@ class GameView(ctx: Context) : View(ctx) {
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
-        if (Game.state == Game.State.TURN) {
-            paint.color = WHITE
-            canvas.drawPaint(paint)
+        when (Game.state) {
+            Game.State.TURN -> {
+                paint.color = WHITE
+                canvas.drawPaint(paint)
 
-            paint.color = BLUE
-            canvas.drawRect(getField(), paint)
+                paint.color = BLUE
+                canvas.drawRect(getField(), paint)
 
-            paint.color = getPlayerColor(Game.currentTurn)
-            canvas.drawCircle(getBlockX(Game.selectedColumn), getY(BLOCK_HEIGHT / 2), RADIUS * unit, paint)
+                paint.color = getPlayerColor(Game.currentTurn)
+                canvas.drawCircle(getBlockX(Game.selectedColumn), getY(BLOCK_HEIGHT / 2),
+                    RADIUS * unit, paint)
 
-            for (i in 0 until Game.ROWS) {
-                for (j in 0 until Game.COLS) {
-                    paint.color = getPlayerColor(Game.field[i][j])
-                    canvas.drawCircle(getBlockX(j), getBlockY(i), RADIUS * unit, paint)
+                for (i in 0 until Game.ROWS) {
+                    for (j in 0 until Game.COLS) {
+                        paint.color = getPlayerColor(Game.field[i][j])
+                        canvas.drawCircle(getBlockX(j), getBlockY(i), RADIUS * unit, paint)
+                    }
                 }
+            }
+            Game.State.END -> {
+                paint.color = WHITE
+                canvas.drawPaint(paint)
+
+                paint.color = BLUE
+                canvas.drawRect(getField(), paint)
+
+                // TODO print
+
+                if (Game.winner != 0) {
+                    for ((i, j) in Game.longestLine) {
+                        paint.color = getPlayerColor(-Game.field[i][j])
+                        canvas.drawCircle(getBlockX(j), getBlockY(i), (RADIUS + .5f) * unit, paint)
+                    }
+                }
+
+                for (i in 0 until Game.ROWS) {
+                    for (j in 0 until Game.COLS) {
+                        paint.color = getPlayerColor(Game.field[i][j])
+                        canvas.drawCircle(getBlockX(j), getBlockY(i), RADIUS * unit, paint)
+                    }
+                }
+            }
+            Game.State.WELCOME -> {
+                // TODO print
             }
         }
     }
@@ -71,16 +100,28 @@ class GameView(ctx: Context) : View(ctx) {
         if (event != null && event.action == MotionEvent.ACTION_DOWN) {
             val x = (event.x - x0) / unit
             val y = (event.y - y0) / unit
-            if (Game.state == Game.State.TURN) {
-                if (x > 1 && x < WIDTH - 1 && y > Game.ROWS * BLOCK_HEIGHT && y < HEIGHT - 1) {
-                    Game.dropDisc()
-                    invalidate()
-                } else if (y > 0 && y < Game.ROWS * BLOCK_HEIGHT - 2)
+            when (Game.state) {
+                Game.State.TURN -> {
+                    if (x > 1 && x < WIDTH - 1 && y > Game.ROWS * BLOCK_HEIGHT && y < HEIGHT - 1) {
+                        Game.dropDisc()
+                        invalidate()
+                    } else if (y > 0 && y < Game.ROWS * BLOCK_HEIGHT - 2)
                         for (i in 0 until Game.COLS)
-                        if (x > i * BLOCK_WIDTH + 2 && x < (i + 1) * BLOCK_WIDTH) {
-                    Game.selectedColumn = i
+                            if (x > i * BLOCK_WIDTH + 2 && x < (i + 1) * BLOCK_WIDTH) {
+                                Game.selectedColumn = i
+                                invalidate()
+                                break
+                            }
+                }
+                Game.State.END -> {
+                    if (x > 1 && x < WIDTH - 1 && y > 1 && y < HEIGHT - 1) {
+                        Game.restart()
+                        invalidate()
+                    }
+                }
+                Game.State.WELCOME -> {
+                    // TODO start
                     invalidate()
-                    break
                 }
             }
         }
