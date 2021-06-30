@@ -3,9 +3,9 @@ package com.sribnyak.connectfour
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.RectF
+import android.graphics.Typeface
 import android.view.MotionEvent
 import android.view.View
 import kotlin.math.min
@@ -17,19 +17,23 @@ class GameView(ctx: Context) : View(ctx) {
         const val RADIUS = 3
         const val WIDTH = Game.COLS * BLOCK_WIDTH + 2 // empty - cols - empty
         const val HEIGHT = (Game.ROWS + 1) * BLOCK_HEIGHT + 3 // empty row - fill - rows - fill - empty
-        val BLUE = Color.rgb(34, 34, 136)
-        val RED = Color.rgb(221, 0, 0)
-        val YELLOW = Color.rgb(255, 221, 0)
-        val WHITE = Color.rgb(255, 255, 255)
+        const val WELCOME_TEXT_SIZE = 5
+        const val END_TEXT_SIZE = BLOCK_HEIGHT - 2
+        const val BLUE = 0xff222288.toInt()
+        const val WHITE = 0xffffffff.toInt()
+        const val RED = 0xffdd0000.toInt()
+        const val YELLOW = 0xffffdd00.toInt()
         fun getPlayerColor(id: Int) = when (id) {
             1 -> RED
             -1 -> YELLOW
             else -> WHITE
         }
     }
-    private val paint: Paint = Paint().apply {
+    private val paint = Paint().apply {
         style = Paint.Style.FILL
         isAntiAlias = true
+        textAlign = Paint.Align.CENTER
+        typeface = Typeface.DEFAULT_BOLD
     }
     private var unit = min(width / WIDTH, height / HEIGHT).toFloat()
     private var x0 = (width - WIDTH * unit) / 2
@@ -47,33 +51,26 @@ class GameView(ctx: Context) : View(ctx) {
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
-        when (Game.state) {
-            Game.State.TURN -> {
-                paint.color = WHITE
-                canvas.drawPaint(paint)
+        paint.color = WHITE
+        canvas.drawPaint(paint)
 
-                paint.color = BLUE
-                canvas.drawRect(getField(), paint)
+        if (Game.state != Game.State.WELCOME) {
+            paint.color = BLUE
+            canvas.drawRect(getField(), paint)
 
+            if (Game.state == Game.State.TURN) {
                 paint.color = getPlayerColor(Game.currentTurn)
                 canvas.drawCircle(getBlockX(Game.selectedColumn), getY(BLOCK_HEIGHT / 2),
                     RADIUS * unit, paint)
-
-                for (i in 0 until Game.ROWS) {
-                    for (j in 0 until Game.COLS) {
-                        paint.color = getPlayerColor(Game.field[i][j])
-                        canvas.drawCircle(getBlockX(j), getBlockY(i), RADIUS * unit, paint)
-                    }
-                }
-            }
-            Game.State.END -> {
-                paint.color = WHITE
-                canvas.drawPaint(paint)
-
+            } else {
                 paint.color = BLUE
-                canvas.drawRect(getField(), paint)
-
-                // TODO print
+                paint.textSize = END_TEXT_SIZE * unit
+                val text = when (Game.winner) {
+                    1 -> "Red wins! Restart?"
+                    -1 -> "Yellow wins! Restart?"
+                    else -> "Draw. Restart?"
+                }
+                canvas.drawText(text, getX(WIDTH / 2), getY(BLOCK_HEIGHT - 2), paint)
 
                 if (Game.winner != 0) {
                     for ((i, j) in Game.longestLine) {
@@ -81,17 +78,27 @@ class GameView(ctx: Context) : View(ctx) {
                         canvas.drawCircle(getBlockX(j), getBlockY(i), (RADIUS + .5f) * unit, paint)
                     }
                 }
+            }
 
-                for (i in 0 until Game.ROWS) {
-                    for (j in 0 until Game.COLS) {
-                        paint.color = getPlayerColor(Game.field[i][j])
-                        canvas.drawCircle(getBlockX(j), getBlockY(i), RADIUS * unit, paint)
-                    }
+            for (i in 0 until Game.ROWS) {
+                for (j in 0 until Game.COLS) {
+                    paint.color = getPlayerColor(Game.field[i][j])
+                    canvas.drawCircle(getBlockX(j), getBlockY(i), RADIUS * unit, paint)
                 }
             }
-            Game.State.WELCOME -> {
-                // TODO print
-            }
+        } else {
+            val text = arrayOf("Welcome to Connect Four!",
+                "",
+                "In this text I could tell you",
+                "the rules of the game and",
+                "the controls, but I won't :)",
+                "",
+                "Now guess how to start")
+            paint.color = BLUE
+            paint.textSize = WELCOME_TEXT_SIZE * unit
+            for (i in 0..6)
+                canvas.drawText(text[i], getX(WIDTH/2),
+                    getY(HEIGHT/2 + (i - 3) * WELCOME_TEXT_SIZE + 2), paint)
         }
     }
 
@@ -100,29 +107,20 @@ class GameView(ctx: Context) : View(ctx) {
         if (event != null && event.action == MotionEvent.ACTION_DOWN) {
             val x = (event.x - x0) / unit
             val y = (event.y - y0) / unit
-            when (Game.state) {
-                Game.State.TURN -> {
-                    if (x > 1 && x < WIDTH - 1 && y > Game.ROWS * BLOCK_HEIGHT && y < HEIGHT - 1) {
-                        Game.dropDisc()
-                        invalidate()
-                    } else if (y > 0 && y < Game.ROWS * BLOCK_HEIGHT - 2)
-                        for (i in 0 until Game.COLS)
-                            if (x > i * BLOCK_WIDTH + 2 && x < (i + 1) * BLOCK_WIDTH) {
-                                Game.selectedColumn = i
-                                invalidate()
-                                break
-                            }
-                }
-                Game.State.END -> {
-                    if (x > 1 && x < WIDTH - 1 && y > 1 && y < HEIGHT - 1) {
-                        Game.restart()
-                        invalidate()
-                    }
-                }
-                Game.State.WELCOME -> {
-                    // TODO start
+            if (Game.state == Game.State.TURN) {
+                if (x > 1 && x < WIDTH - 1 && y > Game.ROWS * BLOCK_HEIGHT && y < HEIGHT - 1) {
+                    Game.dropDisc()
                     invalidate()
-                }
+                } else if (y > 0 && y < Game.ROWS * BLOCK_HEIGHT - 2)
+                    for (i in 0 until Game.COLS)
+                        if (x > i * BLOCK_WIDTH + 2 && x < (i + 1) * BLOCK_WIDTH) {
+                            Game.selectedColumn = i
+                            invalidate()
+                            break
+                        }
+            } else if (x > 1 && x < WIDTH - 1 && y > 1 && y < HEIGHT - 1) {
+                Game.start()
+                invalidate()
             }
         }
         return super.onTouchEvent(event)

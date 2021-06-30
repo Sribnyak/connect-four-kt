@@ -8,7 +8,7 @@ object Game {
 
     enum class State { WELCOME, TURN, END }
 
-    var state = State.TURN
+    var state = State.WELCOME
     var currentTurn = 1
     var selectedColumn = MID_COL
     var longestLine = ArrayList<Pair<Int, Int>>()
@@ -33,12 +33,14 @@ object Game {
         }
     }
 
-    fun restart() {
+    fun start() {
+        if (state == State.END) {
+            currentTurn = 1
+            selectedColumn = MID_COL
+            longestLine = ArrayList()
+            field.forEach { it.fill(0) }
+        }
         state = State.TURN
-        currentTurn = 1
-        selectedColumn = MID_COL
-        longestLine = ArrayList()
-        field.forEach { it.fill(0) }
     }
 
     private fun getLastEmptyBlock(col: Int): Int {
